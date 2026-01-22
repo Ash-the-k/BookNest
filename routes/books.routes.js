@@ -3,7 +3,6 @@ import express from "express";
 import {
   getAllBooks,
   getBookById,
-  updateBookStatus,
   editStartedDateForm,
   updateStartedDate,
   editCompletedDateForm,
@@ -22,7 +21,6 @@ const router = express.Router();
 
 router.get("/", getAllBooks);
 router.get("/:id", getBookById);
-router.post("/:id/status", updateBookStatus);
 router.get("/:id/edit-started-date", editStartedDateForm);
 router.post("/:id/edit-started-date", updateStartedDate);
 router.get("/:id/edit-completed-date", editCompletedDateForm);

@@ -57,45 +57,6 @@ export const getBookById = async (req, res) => {
   }
 };
 
-export const updateBookStatus = async (req, res) => {
-  const { id } = req.params;
-  const { status: newStatus } = req.body;
-
-  try {
-    const result = await pool.query("SELECT status FROM books WHERE id = $1", [
-      id,
-    ]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).render("error");
-    }
-
-    const currentStatus = result.rows[0].status;
-
-    // Allowed transitions
-    const allowedTransitions = {
-      wishlist: ["reading"],
-      reading: ["completed", "dropped"],
-      completed: ["dropped"],
-      dropped: ["reading"],
-    };
-
-    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
-      return res.status(400).render("error");
-    }
-
-    await pool.query(
-      "UPDATE books SET status = $1, updated_at = NOW() WHERE id = $2",
-      [newStatus, id],
-    );
-
-    res.redirect(`/books/${id}`);
-  } catch (err) {
-    console.error(err);
-    res.status(500).render("error");
-  }
-};
-
 export const editStartedDateForm = async (req, res) => {
   const { id } = req.params;
 
