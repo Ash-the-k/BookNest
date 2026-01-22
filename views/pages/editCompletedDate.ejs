@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Completed Date</title>
+</head>
+<body>
+  <h1>Edit Completed Date</h1>
+  <h3><%= book.title %></h3>
+
+  <form method="POST">
+    <label>
+      Completed Date:
+      <input
+        type="date"
+        name="completed_date"
+        value="<%= book.completed_date || '' %>"
+      />
+    </label>
+
+    <br /><br />
+    <button type="submit">Save</button>
+    <a href="/books/<%= book.id %>">Cancel</a>
+  </form>
+</body>
+</html>

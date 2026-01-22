@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= book.title %></title>
+</head>
+<body>
+  <h1><%= book.title %></h1>
+  <p><strong>Author:</strong> <%= book.author %></p>
+  <p><strong>Status:</strong> <%= book.status %></p>
+
+    <% if (book.rating_tag) { %>
+    <p>
+        <strong>Rating:</strong>
+        <%= book.rating_tag ? book.rating_tag.replaceAll('_', ' ') : 'Not rated' %>
+    </p>
+    <% } %>
+
+
+    <h3>Actions</h3>
+
+    <ul>
+    <% if (book.status !== 'completed') { %>
+        <li>
+        <a href="/books/<%= book.id %>/mark-completed">
+            Mark as Completed
+        </a>
+        </li>
+    <% } %>
+
+    <% if (book.status !== 'reading') { %>
+        <li>
+        <a href="/books/<%= book.id %>/start-reading">
+            Start Reading
+        </a>
+        </li>
+    <% } %>
+
+    <% if (book.status !== 'wishlist') { %>
+        <li>
+        <a href="/books/<%= book.id %>/move-to-wishlist">
+            Move to Wishlist
+        </a>
+        </li>
+    <% } %>
+
+    <% if (book.status !== 'dropped') { %>
+        <li>
+        <a href="/books/<%= book.id %>/drop">
+            Drop Book
+        </a>
+        </li>
+    <% } %>
+    </ul>
+
+
+    <h3>Started Date</h3>
+
+    <% 
+    const showStartedDate =
+        book.status === 'reading' ||
+        book.status === 'completed' ||
+        book.started_date;
+    %>
+
+    <% if (showStartedDate) { %>
+    <p>
+        <%= book.started_date ? book.started_date : 'Not set' %>
+        <a href="/books/<%= book.id %>/edit-started-date">Edit</a>
+    </p>
+    <% } %>
+
+
+    <hr />
+
+    <h3>Completed Date</h3>
+
+    <%
+    const showCompletedDate =
+        book.status === 'completed' ||
+        book.completed_date;
+    %>
+
+    <% if (showCompletedDate) { %>
+    <p>
+        <%= book.completed_date ? book.completed_date : 'Not set' %>
+        <a href="/books/<%= book.id %>/edit-completed-date">Edit</a>
+    </p>
+    <% } %>
+
+    <hr />
+
+
+    <h2>Reviews</h2>
+
+    <% if (reviews.length === 0) { %>
+    <p>No reviews yet.</p>
+    <% } else { %>
+    <ul>
+        <% reviews.forEach(review => { %>
+        <li>
+            <p><%= review.content %></p>
+            <small> 
+            Status at time: <%= review.status_at_time %>
+            </small>
+        </li>
+        <% }) %>
+    </ul>
+    <% } %>
+
+    <hr />
+
+    <% if (book.status !== 'wishlist') { %>
+    <h3>Add Review</h3>
+
+    <form method="POST" action="/books/<%= book.id %>/reviews">
+        <textarea
+        name="content"
+        rows="4"
+        cols="50"
+        required
+        ></textarea>
+
+        <br />
+        <button type="submit">Add Review</button>
+    </form>
+    <% } %>
+
+  <a href="/books">← Back to library</a>
+</body>
+</html>

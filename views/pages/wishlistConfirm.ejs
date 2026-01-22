@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Move to Wishlist</title>
+</head>
+<body>
+  <h1>Move to Wishlist</h1>
+
+  <p>
+    Move <strong><%= book.title %></strong> back to wishlist?
+  </p>
+
+  <form method="POST">
+    <button type="submit">Yes, Move</button>
+    <a href="/books/<%= book.id %>">Cancel</a>
+  </form>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Start Reading</title>
+</head>
+<body>
+  <h1>Start Reading</h1>
+  <h3><%= book.title %></h3>
+
+  <form method="POST">
+    <label>
+      Started Date (optional):
+      <input
+        type="date"
+        name="started_date"
+        value="<%= book.started_date || '' %>"
+      />
+    </label>
+
+    <br /><br />
+
+    <button type="submit">Confirm</button>
+    <a href="/books/<%= book.id %>">Skip</a>
+  </form>
+</body>
+</html>

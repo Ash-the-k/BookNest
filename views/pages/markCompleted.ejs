@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mark as Completed</title>
+</head>
+<body>
+  <h1>Mark as Completed</h1>
+  <h3><%= book.title %></h3>
+
+  <form method="POST">
+    <label>
+      Rating (required):
+      <select name="rating_tag" required>
+        <option value="">Select</option>
+        <option value="perfection">Perfection</option>
+        <option value="go_for_it">Go for it</option>
+        <option value="time_pass">Time pass</option>
+        <option value="skip">Skip</option>
+      </select>
+    </label>
+
+    <br /><br />
+
+    <label>
+      Completed Date (optional):
+      <input
+        type="date"
+        name="completed_date"
+        value="<%= book.completed_date || '' %>"
+      />
+    </label>
+
+    <br /><br />
+
+    <button type="submit">Confirm</button>
+    <a href="/books/<%= book.id %>">Cancel</a>
+  </form>
+</body>
+</html>

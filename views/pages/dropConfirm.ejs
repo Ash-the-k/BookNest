@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Drop Book</title>
+</head>
+<body>
+  <h1>Drop Book</h1>
+
+  <p>
+    Are you sure you want to drop
+    <strong><%= book.title %></strong>?
+  </p>
+
+  <form method="POST">
+    <button type="submit">Yes, Drop</button>
+    <a href="/books/<%= book.id %>">Cancel</a>
+  </form>
+</body>
+</html>
