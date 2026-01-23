@@ -426,3 +426,42 @@ export const moveToWishlist = async (req, res) => {
 
   res.redirect(`/books/${id}`);
 };
+
+// For API
+
+export const previewBookByWorkOlid = async (req, res) => {
+  const { work_olid } = req.params;
+
+  try {
+    // 1. Check if book already exists in DB
+    const result = await pool.query(
+      "SELECT id FROM books WHERE work_olid = $1",
+      [work_olid]
+    );
+
+    // 2. If exists, redirect to real book page
+    if (result.rows.length > 0) {
+      return res.redirect(`/books/${result.rows[0].id}`);
+    }
+
+    // 3. Not in library yet → render preview mode
+    // (No OL calls yet, placeholders for now)
+    res.render("pages/bookDetail", {
+      book: {
+        title: "Loading…",
+        author: "Loading…",
+        work_olid,
+        edition_olid: null,
+        status: null,
+        started_date: null,
+        completed_date: null,
+        rating_tag: null
+      },
+      olExtras: {},
+      isInLibrary: false
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render("error");
+  }
+};

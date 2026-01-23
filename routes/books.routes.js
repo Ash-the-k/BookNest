@@ -15,11 +15,13 @@ import {
   dropBook,
   wishlistConfirm,
   moveToWishlist,
+  previewBookByWorkOlid
 } from "../controllers/books.controller.js";
 
 const router = express.Router();
 
 router.get("/", getAllBooks);
+router.get("/preview/:work_olid", previewBookByWorkOlid);
 router.get("/:id", getBookById);
 router.get("/:id/edit-started-date", editStartedDateForm);
 router.post("/:id/edit-started-date", updateStartedDate);
