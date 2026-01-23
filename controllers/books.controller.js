@@ -19,15 +19,16 @@ export const getBookById = async (req, res) => {
   try {
     const bookResult = await pool.query(
       `SELECT
-            id,
-            olid,
-            isbn,
-            title,
-            author,
-            status,
-            to_char(started_date, 'YYYY-MM-DD') AS started_date,
-            to_char(completed_date, 'YYYY-MM-DD') AS completed_date,
-            rating_tag
+        id,
+        work_olid,
+        edition_olid,
+        isbn,
+        title,
+        author,
+        status,
+        to_char(started_date, 'YYYY-MM-DD') AS started_date,
+        to_char(completed_date, 'YYYY-MM-DD') AS completed_date,
+        rating_tag
         FROM books
         WHERE id = $1`,
       [id],
@@ -350,7 +351,7 @@ export const dropConfirm = async (req, res) => {
 
   const result = await pool.query(
     "SELECT id, title, rating_tag FROM books WHERE id = $1",
-    [id]
+    [id],
   );
 
   if (result.rows.length === 0) {
@@ -367,13 +368,12 @@ export const dropConfirm = async (req, res) => {
   res.render("pages/dropConfirm", { book });
 };
 
-
 export const dropBook = async (req, res) => {
   const { id } = req.params;
 
   const result = await pool.query(
     "SELECT rating_tag FROM books WHERE id = $1",
-    [id]
+    [id],
   );
 
   if (result.rows.length === 0) {
@@ -390,12 +390,11 @@ export const dropBook = async (req, res) => {
     SET status = 'dropped', updated_at = NOW()
     WHERE id = $1
     `,
-    [id]
+    [id],
   );
 
   res.redirect(`/books/${id}`);
 };
-
 
 export const wishlistConfirm = async (req, res) => {
   const { id } = req.params;
