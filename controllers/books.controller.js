@@ -465,3 +465,34 @@ export const previewBookByWorkOlid = async (req, res) => {
     res.status(500).render("error");
   }
 };
+
+export const searchBooksPage = async (req, res) => {
+  const query = req.query.q?.trim() || "";
+  const page = Number(req.query.page) || 1;
+  const limit = 8;
+
+  if (!query) {
+    return res.render("pages/search", {
+      query,
+      results: [],
+      page
+    });
+  }
+
+  try {
+    const results = await searchBooks(query, page, limit);
+
+    res.render("pages/search", {
+      query,
+      results,
+      page
+    });
+  } catch (err) {
+    console.error(err);
+    res.render("pages/search", {
+      query,
+      results: [],
+      page
+    });
+  }
+};

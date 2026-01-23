@@ -9,16 +9,20 @@ const OL_COVERS_URL = "https://covers.openlibrary.org";
 /**
  * Search books by text query (title / author)
  */
-export const searchBooks = async (query) => {
+export const searchBooks = async (query, page = 1, limit = 8) => {
   if (!query) return [];
 
   try {
     // 1️⃣ Search Open Library
     const response = await axios.get(`${OL_BASE_URL}/search.json`, {
-      params: { q: query },
+      params: {
+        q: query,
+        page,
+        limit,
+      },
     });
 
-    const docs = response.data?.docs || [];
+    const docs = response.data?.docs;
 
     // 2️⃣ Normalize base results (SYNC)
     const baseResults = docs

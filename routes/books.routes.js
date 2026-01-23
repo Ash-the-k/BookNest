@@ -15,11 +15,13 @@ import {
   dropBook,
   wishlistConfirm,
   moveToWishlist,
-  previewBookByWorkOlid
+  previewBookByWorkOlid,
+  searchBooksPage,
 } from "../controllers/books.controller.js";
 
 const router = express.Router();
 
+router.get("/search", searchBooksPage);
 router.get("/", getAllBooks);
 router.get("/preview/:work_olid", previewBookByWorkOlid);
 router.get("/:id", getBookById);
