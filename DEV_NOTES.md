@@ -258,6 +258,11 @@ This section reflects **all routes that currently exist** in the codebase.
    * EJS = display + input only
    * Controllers decide truth
 
+4. **Once Completed, book cannot be dropped**
+
+   * A book that has ever been completed (i.e. has a `rating_tag`) must never be droppable.
+
+
 If any change violates these rules, stop and redesign.
 
 ---

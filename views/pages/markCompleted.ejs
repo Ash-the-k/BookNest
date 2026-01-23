@@ -12,10 +12,19 @@
       Rating (required):
       <select name="rating_tag" required>
         <option value="">Select</option>
-        <option value="perfection">Perfection</option>
-        <option value="go_for_it">Go for it</option>
-        <option value="time_pass">Time pass</option>
-        <option value="skip">Skip</option>
+        <option value="perfection" <%= book.rating_tag === 'perfection' ? 'selected' : '' %>>
+        Perfection
+        </option>
+        <option value="go_for_it" <%= book.rating_tag === 'go_for_it' ? 'selected' : '' %>>
+        Go for it
+        </option>
+        <option value="time_pass" <%= book.rating_tag === 'time_pass' ? 'selected' : '' %>>
+        Time pass
+        </option>
+        <option value="skip" <%= book.rating_tag === 'skip' ? 'selected' : '' %>>
+        Skip
+        </option>
+
       </select>
     </label>
 

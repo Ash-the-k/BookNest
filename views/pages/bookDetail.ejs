@@ -43,7 +43,7 @@
         </li>
     <% } %>
 
-    <% if (book.status !== 'dropped') { %>
+    <% if (!book.rating_tag && book.status !== 'dropped') { %>
         <li>
         <a href="/books/<%= book.id %>/drop">
             Drop Book

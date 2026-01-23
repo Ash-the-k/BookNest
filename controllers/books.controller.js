@@ -197,13 +197,14 @@ export const markCompletedForm = async (req, res) => {
   try {
     const result = await pool.query(
       `
-      SELECT
+        SELECT
         id,
         title,
+        rating_tag,
         to_char(started_date, 'YYYY-MM-DD') AS started_date,
         to_char(completed_date, 'YYYY-MM-DD') AS completed_date
-      FROM books
-      WHERE id = $1
+        FROM books
+        WHERE id = $1
       `,
       [id],
     );
@@ -311,7 +312,7 @@ export const startReading = async (req, res) => {
       FROM books
       WHERE id = $1
       `,
-      [id]
+      [id],
     );
 
     if (result.rows.length === 0) {
@@ -323,7 +324,7 @@ export const startReading = async (req, res) => {
     validateDates({
       existingStartedDate: book.started_date,
       existingCompletedDate: book.completed_date,
-      newStartedDate: started_date || null
+      newStartedDate: started_date || null,
     });
 
     await pool.query(
@@ -335,7 +336,7 @@ export const startReading = async (req, res) => {
         updated_at = NOW()
       WHERE id = $2
       `,
-      [started_date || null, id]
+      [started_date || null, id],
     );
 
     res.redirect(`/books/${id}`);
@@ -348,7 +349,7 @@ export const dropConfirm = async (req, res) => {
   const { id } = req.params;
 
   const result = await pool.query(
-    "SELECT id, title FROM books WHERE id = $1",
+    "SELECT id, title, rating_tag FROM books WHERE id = $1",
     [id]
   );
 
@@ -356,14 +357,32 @@ export const dropConfirm = async (req, res) => {
     return res.status(404).render("error");
   }
 
-  res.render("pages/dropConfirm", {
-    book: result.rows[0]
-  });
+  const book = result.rows[0];
+
+  // 🚫 Guard: cannot drop if ever completed
+  if (book.rating_tag) {
+    return res.status(400).render("error");
+  }
+
+  res.render("pages/dropConfirm", { book });
 };
 
 
 export const dropBook = async (req, res) => {
   const { id } = req.params;
+
+  const result = await pool.query(
+    "SELECT rating_tag FROM books WHERE id = $1",
+    [id]
+  );
+
+  if (result.rows.length === 0) {
+    return res.status(404).render("error");
+  }
+
+  if (result.rows[0].rating_tag) {
+    return res.status(400).render("error");
+  }
 
   await pool.query(
     `
@@ -377,23 +396,22 @@ export const dropBook = async (req, res) => {
   res.redirect(`/books/${id}`);
 };
 
+
 export const wishlistConfirm = async (req, res) => {
   const { id } = req.params;
 
-  const result = await pool.query(
-    "SELECT id, title FROM books WHERE id = $1",
-    [id]
-  );
+  const result = await pool.query("SELECT id, title FROM books WHERE id = $1", [
+    id,
+  ]);
 
   if (result.rows.length === 0) {
     return res.status(404).render("error");
   }
 
   res.render("pages/wishlistConfirm", {
-    book: result.rows[0]
+    book: result.rows[0],
   });
 };
-
 
 export const moveToWishlist = async (req, res) => {
   const { id } = req.params;
@@ -404,9 +422,8 @@ export const moveToWishlist = async (req, res) => {
     SET status = 'wishlist', updated_at = NOW()
     WHERE id = $1
     `,
-    [id]
+    [id],
   );
 
   res.redirect(`/books/${id}`);
 };
-
