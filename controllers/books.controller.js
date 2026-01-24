@@ -5,13 +5,14 @@ import {
   getCoverUrls,
   getWorkRating,
   getArchiveAvailability,
-  getWorkDescription
+  getWorkDescription,
 } from "../services/openLibrary.service.js";
+import { ensureBookExists } from "../services/bookResolver.service.js";
 
 export const getAllBooks = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM books ORDER BY created_at DESC"
+      "SELECT * FROM books ORDER BY created_at DESC",
     );
 
     const booksWithExtras = await Promise.all(
@@ -23,20 +24,19 @@ export const getAllBooks = async (req, res) => {
           cover_urls: book.edition_olid
             ? getCoverUrls(book.edition_olid)
             : null,
-          ol_rating
+          ol_rating,
         };
-      })
+      }),
     );
 
     res.render("pages/library", {
-      books: booksWithExtras
+      books: booksWithExtras,
     });
   } catch (err) {
     console.error(err);
     res.status(500).render("error");
   }
 };
-
 
 export const getBookById = async (req, res) => {
   const { id } = req.params;
@@ -56,7 +56,7 @@ export const getBookById = async (req, res) => {
         rating_tag
       FROM books
       WHERE id = $1`,
-      [id]
+      [id],
     );
 
     if (bookResult.rows.length === 0) {
@@ -70,7 +70,7 @@ export const getBookById = async (req, res) => {
       WHERE book_id = $1
       ORDER BY created_at DESC
       `,
-      [id]
+      [id],
     );
 
     const book = bookResult.rows[0];
@@ -79,7 +79,7 @@ export const getBookById = async (req, res) => {
       cover_urls: null,
       ol_rating: null,
       ia_preview: null,
-      description: null
+      description: null,
     };
 
     if (book.edition_olid) {
@@ -92,19 +92,17 @@ export const getBookById = async (req, res) => {
       olExtras.description = await getWorkDescription(book.work_olid);
     }
 
-
     res.render("pages/bookDetail", {
       book,
       reviews: reviewsResult.rows,
       isInLibrary: true,
-      olExtras
+      olExtras,
     });
   } catch (err) {
     console.error(err);
     res.status(500).render("error");
   }
 };
-
 
 export const editStartedDateForm = async (req, res) => {
   const { id } = req.params;
@@ -512,8 +510,20 @@ export const getBookPreview = async (req, res) => {
   const { work_olid } = req.params;
 
   try {
+    // 0️⃣ Check if book already exists
+    const existing = await pool.query(
+      "SELECT id FROM books WHERE work_olid = $1",
+      [work_olid],
+    );
+
+    if (existing.rows.length > 0) {
+      return res.redirect(`/books/${existing.rows[0].id}`);
+    }
+
     // 1️⃣ Fetch work data
-    const workRes = await fetch(`https://openlibrary.org/works/${work_olid}.json`);
+    const workRes = await fetch(
+      `https://openlibrary.org/works/${work_olid}.json`,
+    );
     if (!workRes.ok) throw new Error("Work not found");
 
     const work = await workRes.json();
@@ -523,16 +533,13 @@ export const getBookPreview = async (req, res) => {
 
     // 3️⃣ Find an edition (best effort)
     const searchRes = await fetch(
-      `https://openlibrary.org/search.json?q=key:/works/${work_olid}&limit=1`
+      `https://openlibrary.org/search.json?q=key:/works/${work_olid}&limit=1`,
     );
     const searchData = await searchRes.json();
     const doc = searchData.docs?.[0];
 
     const edition_olid =
-      doc?.edition_key?.[0] ??
-      doc?.cover_edition_key ??
-      null;
-      
+      doc?.edition_key?.[0] ?? doc?.cover_edition_key ?? null;
 
     // 4️⃣ Author name
     const author = doc?.author_name?.[0] ?? "Unknown author";
@@ -554,21 +561,39 @@ export const getBookPreview = async (req, res) => {
         title: work.title,
         author,
         work_olid,
-        edition_olid
+        edition_olid,
       },
       olExtras: {
         description,
         ol_rating,
         ia_preview,
-        cover_urls
+        cover_urls,
       },
       isInLibrary: false,
-      reviews: []
+      reviews: [],
     });
-
   } catch (err) {
     console.error(err);
     res.status(404).render("error");
   }
 };
 
+export const resolvePreviewAction = async (req, res) => {
+  const { action } = req.params;
+  const { work_olid, edition_olid, title, author } = req.body;
+
+  try {
+    const bookId = await ensureBookExists({
+      work_olid,
+      edition_olid,
+      title,
+      author,
+    });
+
+    // Redirect to existing action routes
+    res.redirect(`/books/${bookId}/${action}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).render("error");
+  }
+};
