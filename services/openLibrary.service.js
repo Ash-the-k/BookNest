@@ -67,28 +67,6 @@ export const searchBooks = async (query, page = 1, limit = 8) => {
 };
 
 /**
- * Resolve a book using ISBN
- */
-export const getBookByISBN = async (isbn) => {
-  if (!isbn) return null;
-
-  // TODO: Implement
-  return null;
-};
-
-/**
- * Get work-level metadata
- * - description
- * - Open Library rating
- */
-export const getWorkExtras = async (workOlid) => {
-  if (!workOlid) return {};
-
-  // TODO: Implement
-  return {};
-};
-
-/**
  * Get Internet Archive availability (edition-level)
  */
 export const getArchiveAvailability = async (editionOlid) => {
