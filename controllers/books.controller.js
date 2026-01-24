@@ -96,6 +96,7 @@ export const getBookById = async (req, res) => {
     res.render("pages/bookDetail", {
       book,
       reviews: reviewsResult.rows,
+      isInLibrary: true,
       olExtras
     });
   } catch (err) {
@@ -476,43 +477,6 @@ export const moveToWishlist = async (req, res) => {
 
 // For API
 
-export const previewBookByWorkOlid = async (req, res) => {
-  const { work_olid } = req.params;
-
-  try {
-    // 1. Check if book already exists in DB
-    const result = await pool.query(
-      "SELECT id FROM books WHERE work_olid = $1",
-      [work_olid],
-    );
-
-    // 2. If exists, redirect to real book page
-    if (result.rows.length > 0) {
-      return res.redirect(`/books/${result.rows[0].id}`);
-    }
-
-    // 3. Not in library yet → render preview mode
-    // (No OL calls yet, placeholders for now)
-    res.render("pages/bookDetail", {
-      book: {
-        title: "Loading…",
-        author: "Loading…",
-        work_olid,
-        edition_olid: null,
-        status: null,
-        started_date: null,
-        completed_date: null,
-        rating_tag: null,
-      },
-      olExtras: {},
-      isInLibrary: false,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).render("error");
-  }
-};
-
 export const searchBooksPage = async (req, res) => {
   const query = req.query.q?.trim() || "";
   const page = Number(req.query.page) || 1;
@@ -543,3 +507,68 @@ export const searchBooksPage = async (req, res) => {
     });
   }
 };
+
+export const getBookPreview = async (req, res) => {
+  const { work_olid } = req.params;
+
+  try {
+    // 1️⃣ Fetch work data
+    const workRes = await fetch(`https://openlibrary.org/works/${work_olid}.json`);
+    if (!workRes.ok) throw new Error("Work not found");
+
+    const work = await workRes.json();
+
+    // 2️⃣ Extract description
+    const description = await getWorkDescription(work_olid);
+
+    // 3️⃣ Find an edition (best effort)
+    const searchRes = await fetch(
+      `https://openlibrary.org/search.json?q=key:/works/${work_olid}&limit=1`
+    );
+    const searchData = await searchRes.json();
+    const doc = searchData.docs?.[0];
+
+    const edition_olid =
+      doc?.edition_key?.[0] ??
+      doc?.cover_edition_key ??
+      null;
+      
+
+    // 4️⃣ Author name
+    const author = doc?.author_name?.[0] ?? "Unknown author";
+
+    // 5️⃣ OL rating
+    const ol_rating = await getWorkRating(work_olid);
+
+    // 6️⃣ IA availability
+    let ia_preview = null;
+    if (edition_olid) {
+      ia_preview = await getArchiveAvailability(edition_olid);
+    }
+
+    // 7️⃣ Cover URLs
+    const cover_urls = edition_olid ? getCoverUrls(edition_olid) : null;
+
+    res.render("pages/bookDetail", {
+      book: {
+        title: work.title,
+        author,
+        work_olid,
+        edition_olid
+      },
+      olExtras: {
+        description,
+        ol_rating,
+        ia_preview,
+        cover_urls
+      },
+      isInLibrary: false,
+      reviews: []
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(404).render("error");
+  }
+};
+
