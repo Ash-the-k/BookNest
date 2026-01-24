@@ -4,127 +4,162 @@
   <title><%= book.title %></title>
 </head>
 <body>
+
   <h1><%= book.title %></h1>
+
+  <% if (olExtras?.cover_urls?.medium) { %>
+    <img
+      src="<%= olExtras.cover_urls.medium %>"
+      alt="Cover image"
+      style="max-width: 200px;"
+    />
+  <% } %>
+
   <p><strong>Author:</strong> <%= book.author %></p>
   <p><strong>Status:</strong> <%= book.status %></p>
 
+    <!-- Your Rating -->
     <% if (book.rating_tag) { %>
     <p>
-        <strong>Rating:</strong>
-        <%= book.rating_tag ? book.rating_tag.replaceAll('_', ' ') : 'Not rated' %>
+        <strong>Your Rating:</strong>
+        <%= book.rating_tag.replaceAll('_', ' ') %>
+    </p>
+    <% } else { %>
+    <p>
+        <strong>Your Rating:</strong> Not rated
     </p>
     <% } %>
 
+    <!-- Open Library Rating -->
+    <% if (olExtras?.ol_rating && olExtras.ol_rating.count > 0) { %>
+    <p>
+        <strong>Open Library Rating:</strong>
+        ⭐ <%= Number(olExtras.ol_rating.average).toFixed(1) %>
+        (<%= olExtras.ol_rating.count %>)
+    </p>
+    <% } else { %>
+    <p>
+        <strong>Open Library Rating:</strong> Not available
+    </p>
+<% } %>
 
-    <h3>Actions</h3>
 
-    <ul>
+  <!-- Internet Archive -->
+  <% if (olExtras?.ia_preview?.url) { %>
+    <p>
+      <strong>Read Online:</strong>
+      <a href="<%= olExtras.ia_preview.url %>" target="_blank">
+        Internet Archive
+      </a>
+    </p>
+  <% } %>
+
+  <!-- Description -->
+  <% if (olExtras?.description) { %>
+    <hr />
+    <h3>Description</h3>
+    <p style="white-space: pre-line;">
+      <%= olExtras.description %>
+    </p>
+  <% } %>
+
+  <hr />
+
+  <h3>Actions</h3>
+  <ul>
     <% if (book.status !== 'completed') { %>
-        <li>
-        <a href="/books/<%= book.id %>/mark-completed">
-            Mark as Completed
-        </a>
-        </li>
+      <li>
+        <a href="/books/<%= book.id %>/mark-completed">Mark as Completed</a>
+      </li>
     <% } %>
 
     <% if (book.status !== 'reading') { %>
-        <li>
-        <a href="/books/<%= book.id %>/start-reading">
-            Start Reading
-        </a>
-        </li>
+      <li>
+        <a href="/books/<%= book.id %>/start-reading">Start Reading</a>
+      </li>
     <% } %>
 
     <% if (book.status !== 'wishlist') { %>
-        <li>
-        <a href="/books/<%= book.id %>/move-to-wishlist">
-            Move to Wishlist
-        </a>
-        </li>
+      <li>
+        <a href="/books/<%= book.id %>/move-to-wishlist">Move to Wishlist</a>
+      </li>
     <% } %>
 
     <% if (!book.rating_tag && book.status !== 'dropped') { %>
-        <li>
-        <a href="/books/<%= book.id %>/drop">
-            Drop Book
-        </a>
-        </li>
+      <li>
+        <a href="/books/<%= book.id %>/drop">Drop Book</a>
+      </li>
     <% } %>
-    </ul>
+  </ul>
 
+  <hr />
 
-    <h3>Started Date</h3>
+  <!-- Started Date -->
+  <h3>Started Date</h3>
+  <% const showStartedDate =
+      book.status === 'reading' ||
+      book.status === 'completed' ||
+      book.started_date;
+  %>
 
-    <% 
-    const showStartedDate =
-        book.status === 'reading' ||
-        book.status === 'completed' ||
-        book.started_date;
-    %>
-
-    <% if (showStartedDate) { %>
+  <% if (showStartedDate) { %>
     <p>
-        <%= book.started_date ? book.started_date : 'Not set' %>
-        <a href="/books/<%= book.id %>/edit-started-date">Edit</a>
+      <strong>Date:</strong>
+      <%= book.started_date || 'Not set' %>
+      <a href="/books/<%= book.id %>/edit-started-date">Edit</a>
     </p>
-    <% } %>
+  <% } %>
 
+  <hr />
 
-    <hr />
+  <!-- Completed Date -->
+  <h3>Completed Date</h3>
+  <% const showCompletedDate =
+      book.status === 'completed' ||
+      book.completed_date;
+  %>
 
-    <h3>Completed Date</h3>
-
-    <%
-    const showCompletedDate =
-        book.status === 'completed' ||
-        book.completed_date;
-    %>
-
-    <% if (showCompletedDate) { %>
+  <% if (showCompletedDate) { %>
     <p>
-        <%= book.completed_date ? book.completed_date : 'Not set' %>
-        <a href="/books/<%= book.id %>/edit-completed-date">Edit</a>
+      <strong>Date:</strong>
+      <%= book.completed_date || 'Not set' %>
+      <a href="/books/<%= book.id %>/edit-completed-date">Edit</a>
     </p>
-    <% } %>
+  <% } %>
 
-    <hr />
+  <hr />
 
+  <!-- Reviews -->
+  <h2>Reviews</h2>
 
-    <h2>Reviews</h2>
-
-    <% if (reviews.length === 0) { %>
+  <% if (reviews.length === 0) { %>
     <p>No reviews yet.</p>
-    <% } else { %>
+  <% } else { %>
     <ul>
-        <% reviews.forEach(review => { %>
+      <% reviews.forEach(review => { %>
         <li>
-            <p><%= review.content %></p>
-            <small> 
+          <p><%= review.content %></p>
+          <small>
             Status at time: <%= review.status_at_time %>
-            </small>
+          </small>
         </li>
-        <% }) %>
+      <% }) %>
     </ul>
-    <% } %>
+  <% } %>
 
-    <hr />
+  <hr />
 
-    <% if (book.status !== 'wishlist') { %>
+  <% if (book.status !== 'wishlist') { %>
     <h3>Add Review</h3>
-
     <form method="POST" action="/books/<%= book.id %>/reviews">
-        <textarea
-        name="content"
-        rows="4"
-        cols="50"
-        required
-        ></textarea>
-
-        <br />
-        <button type="submit">Add Review</button>
+      <textarea name="content" rows="4" cols="50" required></textarea>
+      <br />
+      <button type="submit">Add Review</button>
     </form>
-    <% } %>
+  <% } %>
 
+  <hr />
   <a href="/books">← Back to library</a>
+
 </body>
 </html>

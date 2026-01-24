@@ -94,8 +94,30 @@ export const getWorkExtras = async (workOlid) => {
 export const getArchiveAvailability = async (editionOlid) => {
   if (!editionOlid) return null;
 
-  // TODO: Implement
-  return null;
+  try {
+    const response = await axios.get(
+      "https://openlibrary.org/api/books",
+      {
+        params: {
+          bibkeys: `OLID:${editionOlid}`,
+          format: "json"
+        }
+      }
+    );
+
+    const data = response.data?.[`OLID:${editionOlid}`];
+
+    if (!data || data.preview === "noview") {
+      return null;
+    }
+
+    return {
+      preview: data.preview,
+      url: data.preview_url
+    };
+  } catch (err) {
+    return null;
+  }
 };
 
 /**
@@ -131,6 +153,28 @@ export const getWorkRating = async (workOlid) => {
       count: summary.count,
     };
   } catch (err) {
+    return null;
+  }
+};
+
+export const getWorkDescription = async (workOlid) => {
+  if (!workOlid) return null;
+
+  try {
+    const res = await axios.get(
+      `https://openlibrary.org/works/${workOlid}.json`
+    );
+
+    const desc = res.data?.description;
+
+    if (!desc) return null;
+
+    if (typeof desc === "string") {
+      return desc;
+    }
+
+    return desc.value ?? null;
+  } catch {
     return null;
   }
 };

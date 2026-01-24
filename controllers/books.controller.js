@@ -1,18 +1,42 @@
 import pool from "../db/index.js";
 import { validateDates } from "../utils/dateValidator.js";
 import { searchBooks } from "../services/openLibrary.service.js";
+import {
+  getCoverUrls,
+  getWorkRating,
+  getArchiveAvailability,
+  getWorkDescription
+} from "../services/openLibrary.service.js";
 
 export const getAllBooks = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM books ORDER BY created_at DESC",
+      "SELECT * FROM books ORDER BY created_at DESC"
     );
-    res.render("pages/library", { books: result.rows });
+
+    const booksWithExtras = await Promise.all(
+      result.rows.map(async (book) => {
+        const ol_rating = await getWorkRating(book.work_olid);
+
+        return {
+          ...book,
+          cover_urls: book.edition_olid
+            ? getCoverUrls(book.edition_olid)
+            : null,
+          ol_rating
+        };
+      })
+    );
+
+    res.render("pages/library", {
+      books: booksWithExtras
+    });
   } catch (err) {
     console.error(err);
     res.status(500).render("error");
   }
 };
+
 
 export const getBookById = async (req, res) => {
   const { id } = req.params;
@@ -30,9 +54,9 @@ export const getBookById = async (req, res) => {
         to_char(started_date, 'YYYY-MM-DD') AS started_date,
         to_char(completed_date, 'YYYY-MM-DD') AS completed_date,
         rating_tag
-        FROM books
-        WHERE id = $1`,
-      [id],
+      FROM books
+      WHERE id = $1`,
+      [id]
     );
 
     if (bookResult.rows.length === 0) {
@@ -46,18 +70,40 @@ export const getBookById = async (req, res) => {
       WHERE book_id = $1
       ORDER BY created_at DESC
       `,
-      [id],
+      [id]
     );
 
+    const book = bookResult.rows[0];
+
+    let olExtras = {
+      cover_urls: null,
+      ol_rating: null,
+      ia_preview: null,
+      description: null
+    };
+
+    if (book.edition_olid) {
+      olExtras.cover_urls = getCoverUrls(book.edition_olid);
+      olExtras.ia_preview = await getArchiveAvailability(book.edition_olid);
+    }
+
+    if (book.work_olid) {
+      olExtras.ol_rating = await getWorkRating(book.work_olid);
+      olExtras.description = await getWorkDescription(book.work_olid);
+    }
+
+
     res.render("pages/bookDetail", {
-      book: bookResult.rows[0],
+      book,
       reviews: reviewsResult.rows,
+      olExtras
     });
   } catch (err) {
     console.error(err);
     res.status(500).render("error");
   }
 };
+
 
 export const editStartedDateForm = async (req, res) => {
   const { id } = req.params;
@@ -437,7 +483,7 @@ export const previewBookByWorkOlid = async (req, res) => {
     // 1. Check if book already exists in DB
     const result = await pool.query(
       "SELECT id FROM books WHERE work_olid = $1",
-      [work_olid]
+      [work_olid],
     );
 
     // 2. If exists, redirect to real book page
@@ -456,10 +502,10 @@ export const previewBookByWorkOlid = async (req, res) => {
         status: null,
         started_date: null,
         completed_date: null,
-        rating_tag: null
+        rating_tag: null,
       },
       olExtras: {},
-      isInLibrary: false
+      isInLibrary: false,
     });
   } catch (err) {
     console.error(err);
@@ -476,7 +522,7 @@ export const searchBooksPage = async (req, res) => {
     return res.render("pages/search", {
       query,
       results: [],
-      page
+      page,
     });
   }
 
@@ -486,14 +532,14 @@ export const searchBooksPage = async (req, res) => {
     res.render("pages/search", {
       query,
       results,
-      page
+      page,
     });
   } catch (err) {
     console.error(err);
     res.render("pages/search", {
       query,
       results: [],
-      page
+      page,
     });
   }
 };
