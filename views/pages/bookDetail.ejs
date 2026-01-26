@@ -24,12 +24,12 @@
   <% } %>
 
   <!-- Ratings -->
-  <p>
-    <strong>Your Rating:</strong>
-    <%= book.rating_tag
-      ? book.rating_tag.replaceAll('_', ' ')
-      : 'Not rated' %>
-  </p>
+  <% if (book.rating_tag) { %>
+    <p>
+      <strong>Your Rating:</strong>
+      <%= book.rating_tag.replaceAll('_', ' ') %>
+    </p>
+  <% } %>
 
   <p>
     <strong>Open Library Rating:</strong>
