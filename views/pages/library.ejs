@@ -1,63 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>My Library</title>
-</head>
-<body>
-
-  <a href="/books/search">Search new books</a>
-
-<h1>My Library</h1>
+<div class="row mb-4 align-items-center">
+  <div class="col">
+    <h1 class="display-5">My Library</h1>
+  </div>
+  <div class="col-auto">
+    <a href="/books/search" class="btn btn-vintage">Add New Book</a>
+  </div>
+</div>
 
 <% if (books.length === 0) { %>
-  <p>No books found.</p>
+  <div class="text-center py-5">
+    <div class="display-1 text-muted mb-3">📖</div>
+    <h3>The shelves are empty.</h3>
+    <p class="text-muted">Start building your collection today.</p>
+    <a href="/books/search" class="btn btn-outline-dark mt-3">Search Books</a>
+  </div>
 <% } else { %>
-  <ul style="list-style: none; padding: 0;">
+  <div class="row">
     <% books.forEach(book => { %>
-      <li style="margin-bottom: 20px;">
-        
-        <!-- Cover -->
-        <% if (book.edition_olid) { %>
-          <img
-            src="https://covers.openlibrary.org/b/OLID/<%= book.edition_olid %>-M.jpg"
-            alt="Cover"
-          />
-        <% } %>
-
-        <!-- Title -->
-        <p>
-          <a href="/books/<%= book.id %>">
-            <strong><%= book.title %></strong>
-          </a>
-        </p>
-
-        <!-- Author -->
-        <p><strong>Author:</strong> <%= book.author %></p>
-
-        <!-- Status -->
-        <p><strong>Status:</strong> <%= book.status %></p>
-
-        <!-- Ratings -->
-        <% if (book.rating_tag) { %>
-          <p>
-            <strong>Your Rating:</strong>
-            <%= book.rating_tag.replaceAll('_', ' ') %>
-          </p>
-        <% } else if (book.ol_rating?.count > 0) { %>
-          <p>
-            <strong>Open Library Rating:</strong>
-            ⭐ <%= Number(book.ol_rating.average).toFixed(1) %>
-            (<%= book.ol_rating.count %>)
-          </p>
-        <% } %>
-
-        <hr />
-      </li>
+      <%- include('../partials/book_card', { book: book }) %>
     <% }) %>
-  </ul>
+  </div>
 <% } %>
-
-<a href="/books/search">Search new books</a>
-
-</body>
-</html>

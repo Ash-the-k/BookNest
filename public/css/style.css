@@ -1,0 +1,438 @@
+:root {
+  /* --- PALETTE --- */
+  --bg-parchment: #f5f1e8;
+  --bg-parchment-dark: #e8e4d9;
+  --text-ink: #2c1810;
+  --text-ink-light: #5a4a42;
+  
+  /* ACCENTS */
+  --accent-sepia: #d4a574;      
+  --accent-gold: #cfaa4c;       /* Antique Gold */
+  
+  --accent-slate: #4b6584;      /* Time Pass */
+  --accent-green: #556b2f;      /* Olive Green */
+  --accent-red: #8b3a3a;        /* Deep Red */
+  --accent-blue: #3a5f8b;       /* Faded Navy */
+  --accent-neutral: #8c8c8c;    /* Wishlist Grey */
+  
+  /* SHADOWS */
+  --shadow-light: 0 4px 12px rgba(44, 24, 16, 0.08);
+  --shadow-medium: 0 8px 24px rgba(44, 24, 16, 0.15);
+
+  /* FONTS */
+  --font-serif: 'Merriweather', serif;
+  --font-display: 'Cinzel Decorative', cursive;
+}
+
+/* --- BASE STYLES --- */
+body {
+  background-color: var(--bg-parchment);
+  color: var(--text-ink);
+  font-family: var(--font-serif);
+  /* The "Loved" SVG Texture */
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%232c1810' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* TYPOGRAPHY */
+h1, h2, h3, .brand-font {
+  font-family: var(--font-display);
+  color: var(--text-ink);
+}
+
+h1 {
+    position: relative;
+    padding-bottom: 15px; /* More space for the brush stroke */
+    margin-bottom: 25px;
+}
+
+/* THE BRUSH STROKE UNDERLINE */
+h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200px;       
+    height: 4px;        
+    background: linear-gradient(90deg, var(--accent-sepia) 0%, rgba(212, 165, 116, 0.5) 60%, transparent 100%);
+    /* Complex radius for organic shape */
+    border-radius: 2px 100% 100% 2px / 2px 80% 60% 4px;
+    /* Rotation for handwriting effect */
+    transform: rotate(-1deg) skewX(-10deg);
+    transform-origin: left bottom;
+}
+
+a { 
+    color: var(--text-ink); 
+    transition: color 0.2s;
+    text-decoration: none;
+}
+a:hover { color: var(--accent-sepia); }
+
+/* --- NAVBAR --- */
+.navbar-custom {
+  background-color: var(--text-ink);
+  border-bottom: 3px solid var(--accent-sepia);
+  box-shadow: var(--shadow-medium);
+}
+
+/* UPDATED: Bigger Logo */
+.navbar-custom .navbar-brand {
+    color: #f5f1e8 !important;
+    font-size: 2.5rem !important; /* Made significantly bigger */
+    padding-top: 5px;
+}
+
+/* NAVBAR HOVER EFFECT */
+.navbar-custom .nav-link {
+    color: #f5f1e8 !important;
+    position: relative;
+    padding-bottom: 5px; 
+}
+.navbar-custom .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 5px; 
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--accent-sepia);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+.navbar-custom .nav-link:hover::after { width: 80%; }
+
+/* SEARCH BAR FIX */
+.search-form .input-group {
+    border: 1px solid var(--accent-sepia);
+    border-radius: 4px;
+    overflow: hidden; 
+}
+.search-form input {
+    border: none;
+    background: #f5f1e8;
+    color: var(--text-ink);
+    border-radius: 0 !important; 
+}
+.search-form input:focus { background: #fff; box-shadow: none; }
+.search-form button {
+    border: none;
+    background: var(--bg-parchment);
+    color: var(--text-ink);
+    border-radius: 0;
+}
+
+/* NAVBAR FLOATING ICON ANIMATION */
+@keyframes float-mini {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-1px); } /* Reduced from 4px to just 2px */
+    100% { transform: translateY(0px); }
+}
+
+.nav-icon-float {
+    color: var(--bg-parchment);
+    margin-right: 15px; 
+    /* Slowed down to 6s for a barely-there effect */
+    animation: float-mini 6s ease-in-out infinite; 
+}
+
+/* --- CARDS --- */
+.book-card {
+  background: white;
+  border: 1px solid var(--bg-parchment-dark);
+  border-radius: 6px; 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+}
+
+.book-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--accent-sepia);
+}
+
+.card-img-top {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-bottom: 1px solid var(--bg-parchment-dark);
+}
+
+/* --- RIBBONS --- */
+.ribbon {
+  position: absolute;
+  top: 25px;              
+  right: -50px;           
+  transform: rotate(45deg);
+  width: 170px;           
+  text-align: center;
+  font-size: 0.7rem;      
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  text-transform: uppercase;
+  z-index: 10;
+  pointer-events: none;
+}
+.ribbon.wishlist { background: var(--accent-neutral); }
+.ribbon.reading { background: var(--accent-blue); }
+.ribbon.completed { background: var(--accent-green); }
+.ribbon.dropped { background: var(--accent-red); }
+
+/* RIBBON FIX FOR PREVIEW PAGE */
+.book-cover-container {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    border-radius: 4px;
+    padding: 0;
+    margin: 0 auto;
+    box-shadow: var(--shadow-medium);
+}
+
+/* --- BUTTONS --- */
+.btn-vintage {
+  background-color: var(--text-ink);
+  color: var(--bg-parchment);
+  border: 1px solid var(--text-ink);
+  font-family: var(--font-display);
+  letter-spacing: 1px;
+}
+.btn-vintage:hover {
+  background-color: var(--accent-sepia);
+  border-color: var(--accent-sepia);
+  color: var(--text-ink);
+}
+
+/* Stamp Button for Edits */
+.btn-edit-stamp {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    color: var(--text-ink-light);
+    border: 1px solid var(--text-ink-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-left: 8px;
+    transition: all 0.2s;
+    background: transparent;
+}
+.btn-edit-stamp:hover {
+    background: var(--text-ink);
+    color: var(--bg-parchment);
+    transform: rotate(-2deg);
+}
+
+/* --- BOOTSTRAP OVERRIDES --- */
+.btn-primary, .btn-secondary, .btn-success, .btn-danger {
+    font-family: var(--font-display) !important;
+    letter-spacing: 0.5px !important;
+    text-transform: none !important;
+    font-weight: bold !important;
+}
+
+.btn-primary { background-color: var(--accent-blue) !important; border-color: var(--accent-blue) !important; }
+.btn-primary:hover { background-color: #2c4a6e !important; border-color: #2c4a6e !important; }
+
+.btn-secondary { background-color: #8e8680 !important; border-color: #8e8680 !important; }
+.btn-secondary:hover { background-color: #6d6661 !important; border-color: #6d6661 !important; }
+
+.btn-success { background-color: var(--accent-green) !important; border-color: var(--accent-green) !important; }
+.btn-success:hover { background-color: #3e4f22 !important; }
+
+.btn-danger { background-color: var(--accent-red) !important; border-color: var(--accent-red) !important; }
+.btn-danger:hover { background-color: #662a2a !important; }
+
+/* --- BADGES --- */
+.badge {
+    font-family: var(--font-display) !important; 
+    letter-spacing: 0.5px !important;
+    text-transform: none !important;
+    padding: 6px 12px !important;
+    font-weight: 600 !important;
+    border-radius: 4px !important;
+    border: 1px solid transparent;
+}
+.badge-perfection { background-color: var(--accent-gold); color: var(--text-ink); border-color: #b8860b; }
+.badge-go-for-it { background-color: var(--accent-green); color: #f5f1e8; }
+.badge-time-pass { background-color: var(--accent-slate); color: #f5f1e8; }
+.badge-skip { background-color: var(--accent-red); color: #f5f1e8; }
+
+/* --- DESCRIPTION EXPANDER --- */
+.description-box { position: relative; }
+.description-content { max-height: 140px; overflow: hidden; transition: max-height 0.8s ease; position: relative; }
+.description-content.expanded { max-height: 2000px; }
+.description-fade {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 80px;
+    background: linear-gradient(to bottom, transparent, #ffffff);
+    transition: opacity 0.5s; pointer-events: none;
+}
+.description-content.expanded .description-fade { opacity: 0; }
+.read-more-btn {
+    background: none; border: none; font-family: var(--font-display);
+    color: var(--accent-sepia); font-size: 0.85rem; letter-spacing: 1px;
+    cursor: pointer; margin-top: 10px; border-bottom: 1px dashed var(--accent-sepia);
+    padding-bottom: 2px; transition: all 0.2s;
+}
+.read-more-btn:hover { color: var(--text-ink); border-bottom-style: solid; }
+
+/* --- JOURNAL REVIEWS --- */
+.review-card {
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 1px solid #e0dace;
+    border-left: 4px solid var(--accent-sepia);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 15px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+.review-card:hover { background-color: #fff; transform: translateX(5px); box-shadow: var(--shadow-light); }
+.review-text { font-family: var(--font-serif); font-style: italic; color: var(--text-ink); font-size: 1.05rem; line-height: 1.6; }
+.review-meta { margin-bottom: 10px; border-bottom: 1px dashed var(--accent-sepia); padding-bottom: 8px; }
+
+/* --- MODALS --- */
+.modal-content { background-color: #fff; border-radius: 8px; border: none; font-family: var(--font-serif); }
+.modal-header { border-bottom: 1px solid #dee2e6; background-color: #f8f9fa; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.modal-title { font-family: var(--font-display); color: var(--text-ink); }
+.modal-footer { border-top: 1px solid #dee2e6; background-color: #f8f9fa; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+/* --- ANIMATIONS --- */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.6s ease-out forwards; }
+
+/* ----------------------------------------------------------- */
+/* ABOUT PAGE: THE "VINTAGE STUDY" REDESIGN                    */
+/* ----------------------------------------------------------- */
+
+/* HERO SECTION */
+.about-hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    margin-bottom: 40px;
+    position: relative;
+    border-bottom: 1px solid var(--accent-sepia);
+    
+    /* FIX: 'closest-side' ensures the glow finishes BEFORE it hits the edge */
+    background: radial-gradient(closest-side, rgba(255,255,255,0.8) 0%, transparent 100%);
+}
+
+.hero-icon-container {
+    margin-bottom: 30px;
+    animation: float 6s ease-in-out infinite; /* Floating Animation */
+}
+
+/* TEXT HIGHLIGHTER EFFECT */
+.highlight-text {
+    position: relative;
+    z-index: 1;
+}
+.highlight-text::before {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: -5px;
+    right: -5px;
+    height: 12px;
+    background-color: var(--accent-sepia);
+    opacity: 0.3;
+    z-index: -1;
+    transform: rotate(-1deg);
+    border-radius: 4px;
+}
+
+/* FEATURE CARDS (Interactive) */
+.feature-card {
+    background-color: #fff;
+    border: 1px solid var(--bg-parchment-dark);
+    border-radius: 12px;
+    padding: 30px;
+    height: 100%;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(44, 24, 16, 0.15);
+    border-color: var(--accent-gold);
+}
+
+.feature-icon-box {
+    width: 60px;
+    height: 60px;
+    background-color: var(--bg-parchment);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    color: var(--text-ink);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon-box {
+    background-color: var(--text-ink);
+    color: var(--accent-gold);
+    transform: rotate(15deg);
+}
+
+/* TECH STACK GRID */
+.tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+}
+
+.tech-card {
+    background: #fff;
+    border: 1px dashed var(--accent-sepia);
+    padding: 15px;
+    text-align: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.tech-card:hover {
+    background: var(--text-ink);
+    border-style: solid;
+    transform: scale(1.05);
+}
+
+.tech-card:hover h6 { color: var(--bg-parchment) !important; }
+.tech-card:hover small { color: var(--accent-gold) !important; }
+
+
+/* DEVELOPER CARD (Fixed Contrast) */
+.dev-card {
+    background-color: var(--text-ink);
+    padding: 50px;
+    border-radius: 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    color: var(--bg-parchment); /* Default text color */
+}
+
+/* Force specific colors for Dev Card children */
+.dev-card h2 { color: var(--accent-gold) !important; }
+.dev-card p { color: rgba(245, 241, 232, 0.9) !important; }
+.dev-card strong { color: #fff !important; }
+
+/* ANIMATIONS */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Staggered entry for cards */
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+
