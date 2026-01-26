@@ -15,20 +15,9 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
-// test route
-app.get("/", (req, res) => {
-  res.send("BookNest is running ✅");
-});
 
-// TEMP: DB health check (remove before production)
-app.get("/health/db", async (req, res) => {
-  try {
-    await pool.query("SELECT 1");
-    res.send("DB connection OK ✅");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("DB connection FAILED ❌");
-  }
+app.get("/", (req, res) => {
+  res.redirect("/books");
 });
 
 app.use("/books", booksRoutes);

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Search Books</title>
+</head>
+<body>
+
+<a href="/books">← Back to Library</a>
+
+<h1>Search Books</h1>
+
+<form method="GET" action="/books/search">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search by title or author"
+    value="<%= query %>"
+    required
+  />
+  <button type="submit">Search</button>
+</form>
+
+<hr />
+
+<% if (query && results.length === 0) { %>
+  <p>No results found.</p>
+<% } %>
+
+<ul>
+<% results.forEach(book => { %>
+  <li>
+    <% if (book.cover_urls?.small) { %>
+      <img src="<%= book.cover_urls.medium %>" alt="cover" />
+    <% } %>
+
+    <p>
+      <strong><%= book.title %></strong><br />
+      <em><%= book.author %></em>
+    </p>
+
+    <% if (book.ol_rating && book.ol_rating.average) { %>
+    <p>
+        ⭐ <%= Number(book.ol_rating.average).toFixed(1) %>
+        (<%= book.ol_rating.count %>)
+    </p>
+    <% } %>
+
+
+    <a href="/books/preview/<%= book.work_olid %>">
+      View details
+    </a>
+  </li>
+  <hr />
+<% }) %>
+</ul>
+
+<hr />
+
+<div>
+  <% if (page > 1) { %>
+    <a href="/books/search?q=<%= query %>&page=<%= page - 1 %>">
+      ← Previous
+    </a>
+  <% } %>
+
+  <span> Page <%= page %> </span>
+
+  <% if (results.length === 8) { %>
+    <a href="/books/search?q=<%= query %>&page=<%= page + 1 %>">
+      Next →
+    </a>
+  <% } %>
+</div>
+
+
+<a href="/books">← Back to Library</a>
+
+</body>
+</html>

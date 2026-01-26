@@ -19,24 +19,19 @@ CREATE TYPE rating_tag AS ENUM (
 CREATE TABLE books (
  id SERIAL PRIMARY KEY,
 
-
- olid VARCHAR NOT NULL UNIQUE,
+ work_olid VARCHAR NOT NULL UNIQUE,
+ edition_olid VARCHAR NOT NULL,
  isbn VARCHAR,
-
 
  title VARCHAR NOT NULL,
  author VARCHAR NOT NULL,
 
-
  status book_status NOT NULL,
-
 
  started_date DATE,
  completed_date DATE,
 
-
  rating_tag rating_tag,
-
 
  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
  updated_at TIMESTAMP NOT NULL DEFAULT NOW()

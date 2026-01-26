@@ -1,336 +1,397 @@
-# BookNest — Internal Developer Notes (v1)
+# BookNest — Developer Notes (Backend Locked)
 
-> **Purpose**  
-> This document is the single source of truth for BookNest’s internal architecture, business rules, and development decisions.  
-> It is meant for developers — **not users**.
-
----
-
-## 1. Core Philosophy (NON-NEGOTIABLE)
-
-- Single-user application
-- Backend-first correctness
-- Business rules live in controllers or shared utilities
-- UI may evolve, but must never lie about state
-- No silent or implicit state mutation
+> **Status:** Backend stable & feature-complete for v1
+> **Scope:** Node.js + Express + PostgreSQL + Open Library integration
+> **UI:** EJS (temporary), frontend revamp planned
 
 ---
 
-## 2. Data Ownership & Authority
+## 1. Project Overview
 
-### Database is the source of truth for:
-- Book status
-- Dates (started / completed)
-- Rating
-- Reviews
+**BookNest** is a **single-user personal reading tracker**.
 
-### Controllers are the ONLY place where:
-- Business rules are enforced
-- Validation happens
-- State transitions are allowed or blocked
+It allows users to:
 
-### Views (EJS):
-- Never enforce business logic
-- Only display data and collect user intent
+* Discover books via **Open Library**
+* Preview books **without persisting**
+* Add books to their library only via **explicit actions**
+* Track:
 
----
+  * Reading status
+  * Dates
+  * Ratings
+  * Reviews
 
-## 3. Status System (FINAL)
+The backend is **state-driven**, with **strict business rules enforced server-side**.
 
-### Status values
-```
-
-wishlist
-reading
-completed
-dropped
-
-```
-
-### Transition philosophy
-> **Any status can transition to any other status.**
-
-There are **no restricted transitions**.  
-What changes is **what data is required** when entering a status.
+External data is **never stored** — only fetched when needed.
 
 ---
 
-## 4. Status Intent vs Status Mutation (CRITICAL)
-
-### ❌ Never allowed
-- Direct status change from dropdowns or links
-- Mutating DB state on a plain GET request
-
-### ✅ Required pattern
-```
-
-User intent → Confirmation / Data collection → Controller validation → DB update
+## 2. Folder Structure (Current)
 
 ```
+controllers/
+  books.controller.js
+  reviews.controller.js
 
-### Route convention
-| Purpose | Route |
-|------|------|
-| Show intent | `GET /books/:id/action` |
-| Perform mutation | `POST /books/:id/action` |
+routes/
+  books.routes.js
+  reviews.routes.js
 
-Confirmation pages exist today and will later become modals **without changing controllers**.
+services/
+  openLibrary.service.js
+  bookResolver.service.js
+
+utils/
+  dateValidator.js
+
+db/
+  index.js
+
+views/pages/
+  library.ejs
+  search.ejs
+  bookDetail.ejs
+  editStartedDate.ejs
+  editCompletedDate.ejs
+  markCompleted.ejs
+  startReading.ejs
+  dropConfirm.ejs
+  wishlistConfirm.ejs
+
+sql/
+  schema.sql
+  seed.sql
+
+index.js
+```
 
 ---
 
-## 5. Date Fields & Rules
+## 3. Database Schema (PostgreSQL)
 
-### Fields
-- `started_date`
-- `completed_date`
+### ENUMS
 
-### Rules
-- Dates can exist in **any status**
-- Dates are **never auto-deleted**
-- Dates are editable independently
-- Validation happens **only if both dates exist**
-
-### Validation rule
-```
-
-completed_date ≥ started_date
-
-```
-
-### Centralized validation
-All date validation must go through:
-
-```
-
-utils/dateValidator.js
-
-````
-
-Controllers must never implement their own date comparisons.
-
----
-
-## 6. Date Handling (IMPORTANT)
-
-PostgreSQL `DATE` fields must NOT be treated as JavaScript `Date` objects.
-
-### Required practice
-- Normalize dates in SQL using:
 ```sql
-to_char(date_column, 'YYYY-MM-DD')
-````
+CREATE TYPE book_status AS ENUM (
+  'wishlist',
+  'reading',
+  'completed',
+  'dropped'
+);
 
-### ❌ Never
+CREATE TYPE rating_tag AS ENUM (
+  'perfection',
+  'go_for_it',
+  'time_pass',
+  'skip'
+);
+```
 
-* Pass raw DATE objects to EJS
-* Use `new Date()` directly for DATE comparison
-* Use `toISOString()` for UI rendering
+### BOOKS TABLE
 
-This prevents timezone-related bugs.
+```sql
+CREATE TABLE books (
+  id SERIAL PRIMARY KEY,
 
----
+  work_olid VARCHAR NOT NULL UNIQUE,
+  edition_olid VARCHAR,
 
-## 7. Rating Rules (FINAL)
+  isbn VARCHAR,
+  title VARCHAR NOT NULL,
+  author VARCHAR NOT NULL,
 
-* Rating belongs to the **book entity**
-* Rating persists across rereads
-* Rating is mandatory **only when marking a book as completed**
-* Rating is displayed whenever `rating_tag` exists, regardless of current status
+  status book_status NOT NULL,
 
-Correct UI rule:
+  started_date DATE,
+  completed_date DATE,
 
-```ejs
-<% if (book.rating_tag) { %>
+  rating_tag rating_tag,
+
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### REVIEWS TABLE
+
+```sql
+CREATE TABLE reviews (
+  id SERIAL PRIMARY KEY,
+  book_id INT REFERENCES books(id) ON DELETE CASCADE,
+
+  content TEXT NOT NULL,
+  status_at_time book_status NOT NULL,
+
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 ```
 
 ---
 
-## 8. Reviews Rules
+## 4. PostgreSQL — How to Run
 
-* Reviews can be added only if:
+### Start psql
 
-```
-book.status !== 'wishlist'
-```
-
-* Review content is editable
-* `status_at_time` is immutable
-* Reviews are ordered newest → oldest
-* Reviews do NOT own ratings
-
----
-
-## 9. Error Handling Strategy
-
-### Current (Intentional)
-
-* Fail hard
-* Redirect to `error.ejs`
-* No silent failures
-
-### Planned (Future)
-
-* Inline validation messages
-* Modal-based error feedback
-* Controllers remain unchanged
-
----
-
-## 10. Pages → Modals Strategy
-
-The following pages are intentionally implemented as full pages and will later be converted to modals:
-
-```
-editStartedDate.ejs
-editCompletedDate.ejs
-markCompleted.ejs
-startReading.ejs
-dropConfirm.ejs
-wishlistConfirm.ejs
+```bash
+psql -U postgres
 ```
 
-This is **not technical debt** — it is staged UI development.
+### Create Database
 
----
+```sql
+CREATE DATABASE booknest;
+```
 
-## 11. Routing Overview
+### Run Schema
 
-This section reflects **all routes that currently exist** in the codebase.
+```bash
+psql -U postgres -d booknest -f sql/schema.sql
+```
 
----
-
-### Library & Detail
-
-| Method | Route        | Purpose             |
-| ------ | ------------ | ------------------- |
-| GET    | `/books`     | Library (all books) |
-| GET    | `/books/:id` | Book detail page    |
-
----
-
-### Status Transitions (Intent-Based)
-
-| Method | Route                         | Purpose                                |
-| ------ | ----------------------------- | -------------------------------------- |
-| GET    | `/books/:id/mark-completed`   | Collect data to mark book as completed |
-| POST   | `/books/:id/mark-completed`   | Mark book as completed                 |
-| GET    | `/books/:id/start-reading`    | Collect started date (optional)        |
-| POST   | `/books/:id/start-reading`    | Move book to reading                   |
-| GET    | `/books/:id/drop`             | Drop confirmation                      |
-| POST   | `/books/:id/drop`             | Mark book as dropped                   |
-| GET    | `/books/:id/move-to-wishlist` | Wishlist confirmation                  |
-| POST   | `/books/:id/move-to-wishlist` | Move book to wishlist                  |
-
----
-
-### Date Editing
-
-| Method | Route                            | Purpose               |
-| ------ | -------------------------------- | --------------------- |
-| GET    | `/books/:id/edit-started-date`   | Edit started date     |
-| POST   | `/books/:id/edit-started-date`   | Update started date   |
-| GET    | `/books/:id/edit-completed-date` | Edit completed date   |
-| POST   | `/books/:id/edit-completed-date` | Update completed date |
-
----
-
-### Reviews
-
-| Method | Route                | Purpose      |
-| ------ | -------------------- | ------------ |
-| POST   | `/books/:id/reviews` | Add a review |
-
----
-
-## 12. What Must NEVER Be Broken (GUARDRAILS)
-
-1. **Status must never be changed directly from UI**
-
-   * Always go through intent → controller → validation
-
-2. **DATE columns must never be handled as JavaScript Date objects**
-
-   * Normalize at SQL level
-   * Validate only via `dateValidator`
-
-3. **Business rules must never live in views**
-
-   * EJS = display + input only
-   * Controllers decide truth
-
-4. **Once Completed, book cannot be dropped**
-
-   * A book that has ever been completed (i.e. has a `rating_tag`) must never be droppable.
-
-
-If any change violates these rules, stop and redesign.
-
----
-
-## 13. Database Seeding (Development Only)
-
-Seeding is used only for development and testing.
-
-### Command
+### Seed Database
 
 ```bash
 psql -U postgres -d booknest -f sql/seed.sql
 ```
 
-* PostgreSQL must be running
-* Database name: `booknest`
-* Safe to re-run during development
+---
+
+## 5. Core Domain Model
+
+### Book Identity Rule
+
+* **`work_olid` is canonical**
+* One DB row per work
+* Editions are secondary and optional
+
+### Stored (Owned) Data
+
+* title
+* author
+* work_olid
+* edition_olid
+* status
+* dates
+* rating_tag
+* reviews
+
+### External (Fetched) Data
+
+* cover images
+* Open Library rating
+* description
+* Internet Archive preview
 
 ---
 
-## 14. Canonical Folder Structure
+## 6. Book Lifecycle & Business Rules (CRITICAL)
 
-```
-.
-├── controllers
-│   ├── books.controller.js
-│   └── reviews.controller.js
-├── db
-│   └── index.js
-├── index.js
-├── package.json
-├── package-lock.json
-├── public
-│   ├── css
-│   └── js
-├── routes
-│   ├── books.routes.js
-│   └── reviews.routes.js
-├── services
-├── sql
-│   ├── schema.sql
-│   └── seed.sql
-├── utils
-│   └── dateValidator.js
-└── views
-    ├── error.ejs
-    ├── pages
-    │   ├── bookDetail.ejs
-    │   ├── dropConfirm.ejs
-    │   ├── editCompletedDate.ejs
-    │   ├── editStartedDate.ejs
-    │   ├── library.ejs
-    │   ├── markCompleted.ejs
-    │   ├── startReading.ejs
-    │   └── wishlistConfirm.ejs
-    └── partials
-```
+### Status Transitions (Allowed)
+
+From **any state**:
+
+* wishlist → reading / completed / dropped
+* reading → wishlist / completed / dropped
+* completed → wishlist / reading (re-read)
+* dropped → wishlist / reading / completed (re-read)
+
+### Completion Rules
+
+* `rating_tag` **mandatory**
+* `completed_date >= started_date`
+
+### Drop Restrictions
+
+* ❌ Cannot drop a book **if it has ever been rated**
+
+### Enforcement
+
+* All date rules enforced via `validateDates()`
+* Status rules enforced in controllers
 
 ---
 
-## 15. Intentional Omissions (v1)
+## 7. Routes — COMPLETE MAP
 
-* Authentication
-* User accounts
-* Audit history
-* Analytics
-* Recommendation engine
+---
 
-These are consciously deferred.
+### 7.1 Library & Navigation
+
+| Method | Route        | Controller  | Purpose             |
+| ------ | ------------ | ----------- | ------------------- |
+| GET    | `/`          | index.js    | Redirect → `/books` |
+| GET    | `/books`     | getAllBooks | Library page        |
+| GET    | `/books/:id` | getBookById | Book detail         |
+
+---
+
+### 7.2 Open Library Search
+
+| Method | Route           | Controller      | Purpose                |
+| ------ | --------------- | --------------- | ---------------------- |
+| GET    | `/books/search` | searchBooksPage | OL search + pagination |
+
+---
+
+### 7.3 Preview (NOT persisted)
+
+| Method | Route                       | Controller     | Purpose      |
+| ------ | --------------------------- | -------------- | ------------ |
+| GET    | `/books/preview/:work_olid` | getBookPreview | Preview book |
+
+Preview:
+
+* Does NOT write to DB
+* Shows OL metadata
+* Actions available
+
+---
+
+### 7.4 Action-Based Book Creation
+
+Used **only when previewed book is not in DB**.
+
+| Method | Route                            |
+| ------ | -------------------------------- |
+| POST   | `/books/action/start-reading`    |
+| POST   | `/books/action/mark-completed`   |
+| POST   | `/books/action/move-to-wishlist` |
+| POST   | `/books/action/drop`             |
+
+Flow:
+
+1. `ensureBookExists(work_olid)`
+2. Insert book if missing
+3. Perform action
+
+---
+
+### 7.5 Status & Date Actions (Library Books)
+
+| Method | Route                            | Purpose            |
+| ------ | -------------------------------- | ------------------ |
+| GET    | `/books/:id/start-reading`       | Start reading form |
+| POST   | `/books/:id/start-reading`       | Save reading       |
+| GET    | `/books/:id/mark-completed`      | Completion form    |
+| POST   | `/books/:id/mark-completed`      | Complete book      |
+| GET    | `/books/:id/edit-started-date`   | Edit start date    |
+| POST   | `/books/:id/edit-started-date`   | Save start date    |
+| GET    | `/books/:id/edit-completed-date` | Edit completion    |
+| POST   | `/books/:id/edit-completed-date` | Save completion    |
+
+---
+
+### 7.6 Drop & Wishlist (with confirmation)
+
+| Method | Route                         |
+| ------ | ----------------------------- |
+| GET    | `/books/:id/drop`             |
+| POST   | `/books/:id/drop`             |
+| GET    | `/books/:id/move-to-wishlist` |
+| POST   | `/books/:id/move-to-wishlist` |
+
+---
+
+### 7.7 Reviews
+
+| Method | Route                |
+| ------ | -------------------- |
+| POST   | `/books/:id/reviews` |
+
+Rules:
+
+* ❌ Not allowed in wishlist
+* Stores `status_at_time`
+
+---
+
+## 8. Open Library Integration
+
+### Used APIs
+
+* `/search.json`
+* `/works/:olid.json`
+* `/works/:olid/ratings.json`
+* `/api/books`
+* Covers API
+
+### Stored in DB?
+
+❌ No — fetched dynamically
+
+---
+
+## 9. EJS Contract (VERY IMPORTANT)
+
+### bookDetail.ejs expects:
+
+```js
+{
+  book: {
+    id?,
+    title,
+    author,
+    work_olid,
+    edition_olid,
+    status?,
+    started_date?,
+    completed_date?,
+    rating_tag?
+  },
+  olExtras: {
+    description?,
+    ol_rating?,
+    cover_urls?,
+    ia_preview?
+  },
+  isInLibrary: boolean,
+  reviews: []
+}
+```
+
+UI logic **branches heavily** on `isInLibrary`.
+
+---
+
+## 10. index.js Behavior
+
+* `/` → redirects to `/books`
+* `/books` → library
+* `/books/search` → OL search
+* `/books/preview/:work_olid` → preview
+
+---
+
+## 11. Locked Decisions (DO NOT CHANGE)
+
+* `work_olid` is canonical
+* Preview never mutates DB
+* Actions create books
+* Rating once set is permanent
+* Date validation centralized
+* External data not persisted
+
+---
+
+## 12. Current Status
+
+✅ Backend stable
+✅ Preview → Persist flow solid
+✅ Business rules enforced
+✅ OL integration complete
+❌ UI temporary
+
+---
+
+## 13. Next Phase (Frontend)
+
+* Frontend plan document
+* Replace EJS with components
+* Modals instead of pages
+* Tabs & filters
+* Inline errors
 
 ---

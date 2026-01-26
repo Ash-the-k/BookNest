@@ -1,23 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>All Books</title>
+  <title>My Library</title>
 </head>
 <body>
-  <h1>All Books</h1>
 
-  <% if (books.length === 0) { %>
-    <p>No books found.</p>
-  <% } else { %>
-    <ul>
-        <% books.forEach(book => { %>
-            <li>
-            <a href="/books/<%= book.id %>">
-                <%= book.title %> — <%= book.author %>
-            </a>
-            </li>
-        <% }) %>
-    </ul>
-  <% } %>
+  <a href="/books/search">Search new books</a>
+
+<h1>My Library</h1>
+
+<% if (books.length === 0) { %>
+  <p>No books found.</p>
+<% } else { %>
+  <ul style="list-style: none; padding: 0;">
+    <% books.forEach(book => { %>
+      <li style="margin-bottom: 20px;">
+        
+        <!-- Cover -->
+        <% if (book.edition_olid) { %>
+          <img
+            src="https://covers.openlibrary.org/b/OLID/<%= book.edition_olid %>-M.jpg"
+            alt="Cover"
+          />
+        <% } %>
+
+        <!-- Title -->
+        <p>
+          <a href="/books/<%= book.id %>">
+            <strong><%= book.title %></strong>
+          </a>
+        </p>
+
+        <!-- Author -->
+        <p><strong>Author:</strong> <%= book.author %></p>
+
+        <!-- Status -->
+        <p><strong>Status:</strong> <%= book.status %></p>
+
+        <!-- Ratings -->
+        <% if (book.rating_tag) { %>
+          <p>
+            <strong>Your Rating:</strong>
+            <%= book.rating_tag.replaceAll('_', ' ') %>
+          </p>
+        <% } else if (book.ol_rating?.count > 0) { %>
+          <p>
+            <strong>Open Library Rating:</strong>
+            ⭐ <%= Number(book.ol_rating.average).toFixed(1) %>
+            (<%= book.ol_rating.count %>)
+          </p>
+        <% } %>
+
+        <hr />
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<a href="/books/search">Search new books</a>
+
 </body>
 </html>

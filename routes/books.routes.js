@@ -3,6 +3,7 @@ import express from "express";
 import {
   getAllBooks,
   getBookById,
+  getBookPreview,
   editStartedDateForm,
   updateStartedDate,
   editCompletedDateForm,
@@ -15,10 +16,16 @@ import {
   dropBook,
   wishlistConfirm,
   moveToWishlist,
+  searchBooksPage,
+  resolvePreviewAction
 } from "../controllers/books.controller.js";
+
 
 const router = express.Router();
 
+router.get("/search", searchBooksPage);
+router.get("/preview/:work_olid", getBookPreview);
+router.post("/action/:action", resolvePreviewAction);
 router.get("/", getAllBooks);
 router.get("/:id", getBookById);
 router.get("/:id/edit-started-date", editStartedDateForm);
