@@ -9,7 +9,7 @@
   if (book.status === 'completed') statusClass = 'completed';
   if (book.status === 'dropped') statusClass = 'dropped';
   
-  // Cover Logic
+  // Cover Logic (Handle Search vs Library structure)
   let coverUrl = 'https://via.placeholder.com/180x280?text=No+Cover';
   if (book.cover_urls?.medium) coverUrl = book.cover_urls.medium;
   else if (book.edition_olid) coverUrl = `https://covers.openlibrary.org/b/OLID/${book.edition_olid}-M.jpg`;
@@ -29,8 +29,10 @@
         <h5 class="card-title brand-font text-truncate"><%= book.title %></h5>
         <p class="card-text small text-muted text-truncate"><%= book.author %></p>
         
-        <div class="mt-auto d-flex align-items-center justify-content-between gap-2">
+        <!-- FOOTER SECTION: CHANGED TO VERTICAL STACK -->
+        <div class="mt-auto d-flex flex-column gap-2">
           
+          <!-- TOP: Open Library Rating (Stars) -->
           <div class="text-warning small d-flex align-items-center" style="min-height: 24px;">
             <% if (book.ol_rating?.average) { %>
               <% const stars = Math.round(book.ol_rating.average) %>
@@ -40,10 +42,12 @@
             <% } %>
           </div>
 
+          <!-- BOTTOM: Your Tag -->
           <div>
             <% if (book.rating_tag) { %>
               <% 
-                let ratingClass = 'bg-secondary';
+                // Map tag to CSS class
+                let ratingClass = 'bg-secondary'; // default
                 if (book.rating_tag === 'perfection') ratingClass = 'badge-perfection';
                 if (book.rating_tag === 'go_for_it') ratingClass = 'badge-go-for-it';
                 if (book.rating_tag === 'time_pass') ratingClass = 'badge-time-pass';
