@@ -1,0 +1,62 @@
+<% 
+  // Determine link target: ID for library, Work OLID for search preview
+  const linkTarget = (typeof book.id !== 'undefined') ? `/books/${book.id}` : `/books/preview/${book.work_olid || book.key}`;
+  
+  // Ribbon Logic
+  let statusClass = '';
+  if (book.status === 'wishlist') statusClass = 'wishlist';
+  if (book.status === 'reading') statusClass = 'reading';
+  if (book.status === 'completed') statusClass = 'completed';
+  if (book.status === 'dropped') statusClass = 'dropped';
+  
+  // Cover Logic
+  let coverUrl = 'https://via.placeholder.com/180x280?text=No+Cover';
+  if (book.cover_urls?.medium) coverUrl = book.cover_urls.medium;
+  else if (book.edition_olid) coverUrl = `https://covers.openlibrary.org/b/OLID/${book.edition_olid}-M.jpg`;
+%>
+
+<div class="col-6 col-md-4 col-lg-3 mb-4">
+  <a href="<%= linkTarget %>" class="text-decoration-none text-reset">
+    <div class="card book-card h-100">
+      
+      <% if (statusClass) { %>
+        <div class="ribbon <%= statusClass %>"><%= book.status %></div>
+      <% } %>
+
+      <img src="<%= coverUrl %>" class="card-img-top" alt="<%= book.title %>">
+
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title brand-font text-truncate"><%= book.title %></h5>
+        <p class="card-text small text-muted text-truncate"><%= book.author %></p>
+        
+        <div class="mt-auto d-flex align-items-center justify-content-between gap-2">
+          
+          <div class="text-warning small d-flex align-items-center" style="min-height: 24px;">
+            <% if (book.ol_rating?.average) { %>
+              <% const stars = Math.round(book.ol_rating.average) %>
+              <% for(let i=0; i<5; i++) { %>
+                <%= i < stars ? '★' : '☆' %>
+              <% } %>
+            <% } %>
+          </div>
+
+          <div>
+            <% if (book.rating_tag) { %>
+              <% 
+                let ratingClass = 'bg-secondary';
+                if (book.rating_tag === 'perfection') ratingClass = 'badge-perfection';
+                if (book.rating_tag === 'go_for_it') ratingClass = 'badge-go-for-it';
+                if (book.rating_tag === 'time_pass') ratingClass = 'badge-time-pass';
+                if (book.rating_tag === 'skip') ratingClass = 'badge-skip';
+              %>
+              <span class="badge <%= ratingClass %> rounded-pill">
+                <%= book.rating_tag.replaceAll('_', ' ') %>
+              </span>
+            <% } %>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </a>
+</div>

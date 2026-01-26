@@ -1,227 +1,257 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title><%= book.title %></title>
-</head>
-<body>
+<div class="container fade-in">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <% if (isInLibrary) { %>
+        <li class="breadcrumb-item"><a href="/books">Library</a></li>
+      <% } else { %>
+        <li class="breadcrumb-item"><a href="/books/search">Search</a></li>
+      <% } %>
+      <li class="breadcrumb-item active" aria-current="page"><%= book.title %></li>
+    </ol>
+  </nav>
 
-  <h1><%= book.title %></h1>
-
-  <% if (olExtras?.cover_urls?.medium) { %>
-    <img
-      src="<%= olExtras.cover_urls.medium %>"
-      alt="Cover image"
-      style="max-width: 200px;"
-    />
-  <% } %>
-
-  <p><strong>Author:</strong> <%= book.author %></p>
-
-  <% if (isInLibrary) { %>
-    <p><strong>Status:</strong> <%= book.status %></p>
-  <% } else { %>
-    <p><em>This book is not yet in your library.</em></p>
-  <% } %>
-
-  <!-- Ratings -->
-  <% if (book.rating_tag) { %>
-    <p>
-      <strong>Your Rating:</strong>
-      <%= book.rating_tag.replaceAll('_', ' ') %>
-    </p>
-  <% } %>
-
-  <p>
-    <strong>Open Library Rating:</strong>
-    <% if (olExtras?.ol_rating && olExtras.ol_rating.count > 0) { %>
-      ⭐ <%= Number(olExtras.ol_rating.average).toFixed(1) %>
-      (<%= olExtras.ol_rating.count %>)
-    <% } else { %>
-      Not available
-    <% } %>
-  </p>
-
-  <!-- Internet Archive -->
-  <% if (olExtras?.ia_preview?.url) { %>
-    <p>
-      <strong>Read Online:</strong>
-      <a href="<%= olExtras.ia_preview.url %>" target="_blank">
-        Internet Archive
-      </a>
-    </p>
-  <% } %>
-
-  <!-- Description -->
-  <% if (olExtras?.description) { %>
-    <hr />
-    <h3>Description</h3>
-    <p style="white-space: pre-line;">
-      <%= olExtras.description %>
-    </p>
-  <% } %>
-
-  <hr />
-
-
-    <!-- ACTIONS -->
-    <h3>Actions</h3>
-    <ul>
-
-    <!-- MARK COMPLETED -->
-    <% if (!isInLibrary || book.status !== 'completed') { %>
-        <li>
+  <div class="row g-5">
+    <div class="col-md-4 text-center">
+      
+      <div class="book-cover-container shadow-lg rounded">
         <% if (isInLibrary) { %>
-            <form method="GET" action="/books/<%= book.id %>/mark-completed">
-            <button type="submit">Mark as Completed</button>
-            </form>
-        <% } else { %>
-            <form method="POST" action="/books/action/mark-completed">
-            <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
-            <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
-            <input type="hidden" name="title" value="<%= book.title %>" />
-            <input type="hidden" name="author" value="<%= book.author %>" />
-            <button type="submit">Mark as Completed</button>
-            </form>
+             <% 
+               let statusClass = '';
+               if (book.status === 'wishlist') statusClass = 'wishlist';
+               else if (book.status === 'reading') statusClass = 'reading';
+               else if (book.status === 'completed') statusClass = 'completed';
+               else if (book.status === 'dropped') statusClass = 'dropped';
+             %>
+             <div class="ribbon <%= statusClass %>"><%= book.status %></div>
         <% } %>
-        </li>
-    <% } %>
-
-    <!-- START READING -->
-    <% if (!isInLibrary || book.status !== 'reading') { %>
-        <li>
-        <% if (isInLibrary) { %>
-            <form method="GET" action="/books/<%= book.id %>/start-reading">
-            <button type="submit">Start Reading</button>
-            </form>
+        
+        <% if (olExtras?.cover_urls?.large || olExtras?.cover_urls?.medium) { %>
+          <img src="<%= olExtras.cover_urls.large || olExtras.cover_urls.medium %>" 
+               class="img-fluid" 
+               alt="Cover">
         <% } else { %>
-            <form method="POST" action="/books/action/start-reading">
-            <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
-            <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
-            <input type="hidden" name="title" value="<%= book.title %>" />
-            <input type="hidden" name="author" value="<%= book.author %>" />
-            <button type="submit">Start Reading</button>
-            </form>
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
+                 style="width: 250px; height: 350px;">No Cover</div>
         <% } %>
-        </li>
-    <% } %>
+      </div>
 
-    <!-- MOVE TO WISHLIST -->
-    <% if (!isInLibrary || book.status !== 'wishlist') { %>
-        <li>
-        <% if (isInLibrary) { %>
-            <form method="GET" action="/books/<%= book.id %>/move-to-wishlist">
-            <button type="submit">Move to Wishlist</button>
-            </form>
+      <div class="mt-4 p-3 bg-white border rounded">
+        <h5 class="brand-font">Ratings</h5>
+        
+        <% if (book.rating_tag) { %>
+          <div class="mb-2">
+            <strong>You:</strong> 
+            <% 
+              let ratingClass = 'bg-secondary';
+              if (book.rating_tag === 'perfection') ratingClass = 'badge-perfection';
+              if (book.rating_tag === 'go_for_it') ratingClass = 'badge-go-for-it';
+              if (book.rating_tag === 'time_pass') ratingClass = 'badge-time-pass';
+              if (book.rating_tag === 'skip') ratingClass = 'badge-skip';
+            %>
+            <span class="badge <%= ratingClass %> rounded-pill">
+              <%= book.rating_tag.replaceAll('_', ' ') %>
+            </span>
+          </div>
+        <% } %>
+
+        <div>
+          <strong>Open Library:</strong>
+          <% if (olExtras?.ol_rating && olExtras.ol_rating.count > 0) { %>
+            <span class="text-warning">⭐ <%= Number(olExtras.ol_rating.average).toFixed(1) %></span>
+            <small class="text-muted">(<%= olExtras.ol_rating.count %>)</small>
+          <% } else { %>
+            <span class="text-muted">N/A</span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <h1 class="display-4 brand-font"><%= book.title %></h1>
+      <h4 class="text-muted mb-4">by <%= book.author %></h4>
+
+      <% if (olExtras?.description) { %>
+        <div class="card border-0 mb-4 shadow-sm">
+          <div class="card-body description-box bg-white rounded">
+            
+            <div class="description-content" id="descContent">
+              <p class="card-text" style="white-space: pre-line;">
+                <%= olExtras.description %>
+              </p>
+              <div class="description-fade"></div>
+            </div>
+
+            <div class="text-center">
+                <button class="read-more-btn" id="readMoreBtn" onclick="toggleDescription()">
+                    Read more
+                </button>
+            </div>
+
+          </div>
+        </div>
+      <% } %>
+
+      <% if (olExtras?.ia_preview?.url) { %>
+        <a href="<%= olExtras.ia_preview.url %>" target="_blank" class="btn btn-outline-secondary mb-4">
+          📖 Read on Internet Archive
+        </a>
+      <% } %>
+
+      <hr>
+
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        
+        <% if (!isInLibrary || book.status !== 'completed') { %>
+           <% if (isInLibrary) { %>
+              <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalMarkCompleted">Mark as Completed</button>
+           <% } else { %>
+              <form method="POST" action="/books/action/mark-completed">
+                <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
+                <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
+                <input type="hidden" name="title" value="<%= book.title %>" />
+                <input type="hidden" name="author" value="<%= book.author %>" />
+                <button type="submit" class="btn btn-success">Mark as Completed</button>
+              </form>
+           <% } %>
+        <% } %>
+
+        <% if (!isInLibrary || book.status !== 'reading') { %>
+            <% if (isInLibrary) { %>
+              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalStartReading">Start Reading</button>
+            <% } else { %>
+              <form method="POST" action="/books/action/start-reading">
+                <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
+                <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
+                <input type="hidden" name="title" value="<%= book.title %>" />
+                <input type="hidden" name="author" value="<%= book.author %>" />
+                <button type="submit" class="btn btn-primary">Start Reading</button>
+              </form>
+            <% } %>
+        <% } %>
+
+        <% if (!isInLibrary || book.status !== 'wishlist') { %>
+            <% if (isInLibrary) { %>
+               <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalWishlist">Move to Wishlist</button>
+            <% } else { %>
+               <form method="POST" action="/books/action/move-to-wishlist">
+                <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
+                <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
+                <input type="hidden" name="title" value="<%= book.title %>" />
+                <input type="hidden" name="author" value="<%= book.author %>" />
+                <button type="submit" class="btn btn-secondary">Move to Wishlist</button>
+               </form>
+            <% } %>
+        <% } %>
+
+        <% if (!isInLibrary || (!book.rating_tag && book.status !== 'dropped')) { %>
+            <% if (isInLibrary) { %>
+              <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDrop">Drop Book</button>
+            <% } else { %>
+               <form method="POST" action="/books/action/drop">
+                <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
+                <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
+                <input type="hidden" name="title" value="<%= book.title %>" />
+                <input type="hidden" name="author" value="<%= book.author %>" />
+                <button type="submit" class="btn btn-danger">Drop Book</button>
+               </form>
+            <% } %>
+        <% } %>
+      </div>
+
+      <% if (isInLibrary) { %>
+        
+        <div class="row mb-4">
+          <div class="col-6">
+            <div class="p-3 border rounded h-100 bg-white">
+               <small class="text-uppercase text-muted" style="letter-spacing: 1px;">Started</small>
+               <div class="d-flex align-items-center mt-1">
+                   <span class="fs-5 brand-font"><%= book.started_date || '—' %></span>
+                   
+                   <% if (book.status === 'reading' || book.status === 'completed' || book.started_date) { %>
+                     <a href="#" data-bs-toggle="modal" data-bs-target="#modalEditStarted" 
+                        class="btn-edit-stamp">Edit</a>
+                   <% } %>
+               </div>
+            </div>
+          </div>
+
+          <div class="col-6">
+            <div class="p-3 border rounded h-100 bg-white">
+               <small class="text-uppercase text-muted" style="letter-spacing: 1px;">Completed</small>
+               <div class="d-flex align-items-center mt-1">
+                   <span class="fs-5 brand-font"><%= book.completed_date || '—' %></span>
+                   
+                   <% if (book.status === 'completed' || book.completed_date) { %>
+                     <a href="#" data-bs-toggle="modal" data-bs-target="#modalEditCompleted" 
+                        class="btn-edit-stamp">Edit</a>
+                   <% } %>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+
+        <h3 class="mt-5 mb-4 brand-font border-bottom pb-2" style="border-color: var(--accent-sepia) !important;">
+            Reader's Log
+        </h3>
+
+        <% if (reviews.length === 0) { %>
+          <div class="text-center py-4 text-muted" style="border: 2px dashed #e0dace; border-radius: 8px;">
+            <p class="mb-0">No entries recorded yet.</p>
+          </div>
         <% } else { %>
-            <form method="POST" action="/books/action/move-to-wishlist">
-            <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
-            <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
-            <input type="hidden" name="title" value="<%= book.title %>" />
-            <input type="hidden" name="author" value="<%= book.author %>" />
-            <button type="submit">Move to Wishlist</button>
-            </form>
+          
+          <div class="d-flex flex-column gap-3">
+            <% reviews.forEach(review => { %>
+              
+              <div class="review-card">
+                
+                <div class="d-flex justify-content-between align-items-center review-meta">
+                    <small class="text-uppercase text-muted" style="letter-spacing: 1px; font-size: 0.7rem;">
+                        Recorded Entry
+                    </small>
+
+                    <% 
+                        let badgeClass = 'bg-secondary'; 
+                        let statusLabel = review.status_at_time;
+
+                        if (review.status_at_time === 'completed') badgeClass = 'badge-go-for-it';
+                        if (review.status_at_time === 'dropped')   badgeClass = 'badge-skip';
+                        if (review.status_at_time === 'reading')   badgeClass = 'badge-time-pass';
+                    %>
+                    <span class="badge <%= badgeClass %> rounded-pill" style="font-size: 0.7rem;">
+                        <%= statusLabel %>
+                    </span>
+                </div>
+
+                <p class="review-text mb-0">
+                    <%= review.content %>
+                </p>
+
+              </div>
+
+            <% }) %>
+          </div>
+
         <% } %>
-        </li>
-    <% } %>
 
-    <!-- DROP -->
-    <% if (!isInLibrary || (!book.rating_tag && book.status !== 'dropped')) { %>
-        <li>
-        <% if (isInLibrary) { %>
-            <form method="GET" action="/books/<%= book.id %>/drop">
-            <button type="submit">Drop Book</button>
-            </form>
-        <% } else { %>
-            <form method="POST" action="/books/action/drop">
-            <input type="hidden" name="work_olid" value="<%= book.work_olid %>" />
-            <input type="hidden" name="edition_olid" value="<%= book.edition_olid %>" />
-            <input type="hidden" name="title" value="<%= book.title %>" />
-            <input type="hidden" name="author" value="<%= book.author %>" />
-            <button type="submit">Drop Book</button>
-            </form>
+        <% if (book.status !== 'wishlist') { %>
+            <div class="mt-4">
+                <button class="btn btn-outline-dark w-100 p-3" 
+                        style="border-style: dashed; border-width: 2px; opacity: 0.7;"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#modalAddReview">
+                    + Add New Entry
+                </button>
+            </div>
         <% } %>
-        </li>
-    <% } %>
+        
+      <% } %>
+    </div>
+  </div>
+</div>
 
-    </ul>
-
-
-
-  <% if (isInLibrary) { %>
-
-    <hr />
-
-    <!-- Started Date -->
-    <h3>Started Date</h3>
-    <% const showStartedDate =
-        book.status === 'reading' ||
-        book.status === 'completed' ||
-        book.started_date;
-    %>
-
-    <% if (showStartedDate) { %>
-      <p>
-        <strong>Date:</strong>
-        <%= book.started_date || 'Not set' %>
-        <a href="/books/<%= book.id %>/edit-started-date">Edit</a>
-      </p>
-    <% } %>
-
-    <hr />
-
-    <!-- Completed Date -->
-    <h3>Completed Date</h3>
-    <% const showCompletedDate =
-        book.status === 'completed' ||
-        book.completed_date;
-    %>
-
-    <% if (showCompletedDate) { %>
-      <p>
-        <strong>Date:</strong>
-        <%= book.completed_date || 'Not set' %>
-        <a href="/books/<%= book.id %>/edit-completed-date">Edit</a>
-      </p>
-    <% } %>
-
-    <hr />
-
-    <!-- Reviews -->
-    <h2>Reviews</h2>
-
-    <% if (reviews.length === 0) { %>
-      <p>No reviews yet.</p>
-    <% } else { %>
-      <ul>
-        <% reviews.forEach(review => { %>
-          <li>
-            <p><%= review.content %></p>
-            <small>Status at time: <%= review.status_at_time %></small>
-          </li>
-        <% }) %>
-      </ul>
-    <% } %>
-
-    <hr />
-
-    <% if (book.status !== 'wishlist') { %>
-      <h3>Add Review</h3>
-      <form method="POST" action="/books/<%= book.id %>/reviews">
-        <textarea name="content" rows="4" cols="50" required></textarea>
-        <br />
-        <button type="submit">Add Review</button>
-      </form>
-    <% } %>
-
-  <% } %>
-
-  <hr />
-
-  <% if (isInLibrary) { %>
-    <a href="/books">← Back to library</a>
-  <% } else { %>
-    <a href="/books/search">← Back to search</a>
-  <% } %>
-
-</body>
-</html>
+<% if (isInLibrary) { %>
+  <%- include('../partials/modals', { book: book }) %>
+<% } %>
